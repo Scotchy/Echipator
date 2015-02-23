@@ -36,13 +36,14 @@ struct CPU
 typedef struct CPU CPU;
 
 void Init(CPU *proc, Registers *Reg);
-int OpenGame(char *path, CPU *Proc);
 bool InitSDL(SDL_Surface **screen);
+int OpenGame(char *path, CPU *Proc);
 void Jump(int *ptr, int addr);
 void Timer(int *DT, int *ST);
 void ChangePixel(SDL_Surface *surface, int x, int y, bool color);
-void ClearScreen(SDL_Surface *Screen);
 bool GetPixelState(int x, int y);
+void ClearScreen(SDL_Surface *Screen);
+void UpdateScreen(SDL_Surface *screen);
 
 bool Screen[2048]; //GLOBAL VAR !
 
@@ -64,17 +65,12 @@ int main ( int argc, char* argv[])
     if(InitSDL(&ChipScreen))
         return 1;
 
-    //argv[1] = "C:/Users/Jules/Documents/CodeBlocks/Echipator/bin/Debug/Games/Submarine [Carmelo Cortez, 1978].ch8";
-
     int FileSize = OpenGame(argv[1], &Proc); //Load game
-
-    //End of game loading
 
     bool done = false;
     int ConvertKeys[16] = {SDLK_KP0, SDLK_KP7, SDLK_KP8, SDLK_KP9, SDLK_KP4, SDLK_KP5, SDLK_KP6, SDLK_KP1, SDLK_KP2, SDLK_KP3, 275, 266, SDLK_KP_MULTIPLY, SDLK_KP_MINUS, SDLK_KP_PLUS, SDLK_KP_ENTER};
 
     int ptr(0x200); //Instruction to execute
-    Uint32 LastUpdate(0); //For screen update cadency
     Uint32 Time(0); //For processor cadency
 
     while (!done)
@@ -105,7 +101,6 @@ int main ( int argc, char* argv[])
                             ClearScreen(ChipScreen);
                             OpenGame(argv[1], &Proc);
                             ptr = 0x200; //Instruction to execute
-                            LastUpdate = 0; //For screen update cadency
                             Time = 0; //For processor cadency
                         }
                         int i(0);
@@ -421,21 +416,13 @@ int main ( int argc, char* argv[])
             printf("\n");
             Time = SDL_GetTicks();
         }
-
-        //Screen
-        if(SDL_GetTicks()>=LastUpdate + 1000 / FPS)
-        {
-            SDL_Flip(ChipScreen);
-            LastUpdate = SDL_GetTicks();
-        }
-
-        Timer(&Reg.DT, &Reg.ST);//Decrease timers
-
+        UpdateScreen(ChipScreen); //Update screen
+        Timer(&Reg.DT, &Reg.ST); //Decrease timers
     }
     SDL_FreeSurface(ChipScreen);
 
-    // all is well ;)
-    printf("Exited cleanly\n");
+    // All is well ;)
+    printf("Exited cleanly.\n");
     return 0;
 }
 
@@ -584,4 +571,13 @@ void Timer(int *DT, int *ST)
         DecTimers = SDL_GetTicks();
     }
     //Update
+}
+void UpdateScreen(SDL_Surface *screen)
+{
+    static int LastUpdate(0); //For screen update cadency
+    if(SDL_GetTicks() >= LastUpdate + 1000 / FPS)
+    {
+        SDL_Flip(screen);
+        LastUpdate = SDL_GetTicks();
+    }
 }
