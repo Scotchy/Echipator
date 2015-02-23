@@ -1,10 +1,5 @@
-#ifdef __cplusplus
-    #include <cstdlib>
-#else
-    #include <stdlib.h>
-#endif
+//Yes, one file is enough.
 
-#include <iostream>
 #include <fstream>
 #include <SDL/SDL.h>
 #include <math.h>
